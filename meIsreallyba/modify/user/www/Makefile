@@ -6,10 +6,10 @@ ROMFS_DIR = $(ROOTDIR)/romfs
 
 include $(ROOTDIR)/user/shared/boards.mk
 
-PROJECT_HOME_URL="https:\/\/github.com\/hanwckf\/padavan-4.4\/"
-PROJECT_HOME_URL_MOD="https:\/\/github.com\/TurBoTse\/padavan-4.4\/"
+PROJECT_HOME_URL="https:\/\/github.com\/hanwckf\/rt-n56u\/"
+PROJECT_HOME_URL_MOD="https:\/\/github.com\/TurBoTse\/padavan\/"
 
-LABEL_COPYRIGHT_TEXT='© 2011-2022 <a href="https:\/\/bitbucket.org\/padavan\/rt-n56u" target="blank">Padavan<\/a> \& N56U project community \& by <a href="https:\/\/github.com\/TurBoTse\/rt-n56u" target="blank">TurBoTse<\/a>'
+LABEL_COPYRIGHT_TEXT="© 2011-`date +'%Y'` Padavan \& N56U project community \& Building a Firmware: `TZ='Asia/Shanghai' date +'%Y.%m.%d %H:%M:%S'`"
 
 BOARD_PATTERN=s/ZVMODELVZ/$(CONFIG_FIRMWARE_PRODUCT_ID)/g
 COPYR_PATTERN=s/ZVCOPYRVZ/$(LABEL_COPYRIGHT_TEXT)/g
@@ -170,6 +170,10 @@ ifneq ($(CONFIG_FIRMWARE_INCLUDE_ALIDDNS),y)
 endif
 ifneq ($(CONFIG_FIRMWARE_INCLUDE_ZEROTIER),y)
 	rm -f $(INSTALLDIR)/www/Advanced_zerotier.asp
+endif
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_FRPC)_$(CONFIG_FIRMWARE_INCLUDE_FRPS), n_n)
+	rm -f $(INSTALLDIR)/www/Advanced_frp.asp
+	rm -f $(INSTALLDIR)/www/Advanced_frp_log.asp
 endif
 ifneq ($(CONFIG_FIRMWARE_INCLUDE_DDNSTO),y)
 	rm -f $(INSTALLDIR)/www/Advanced_ddnsto.asp

@@ -7,9 +7,9 @@ ROMFS_DIR = $(ROOTDIR)/romfs
 include $(ROOTDIR)/user/shared/boards.mk
 
 PROJECT_HOME_URL="https:\/\/github.com\/hanwckf\/rt-n56u\/"
-PROJECT_HOME_URL_MOD="https:\/\/github.com\/TurBoTse\/rt-n56u\/"
+PROJECT_HOME_URL_MOD="https:\/\/github.com\/TurBoTse\/padavan\/"
 
-LABEL_COPYRIGHT_TEXT='© 2011-2022 <a href="https:\/\/bitbucket.org\/padavan\/rt-n56u" target="blank">Padavan<\/a> \& N56U project community \& by <a href="https:\/\/github.com\/TurBoTse\/rt-n56u" target="blank">TurBoTse<\/a>'
+LABEL_COPYRIGHT_TEXT="© 2011-`date +'%Y'` Padavan \& N56U project community \& Building a Firmware: `TZ='Asia/Shanghai' date +'%Y.%m.%d %H:%M:%S'`"
 
 BOARD_PATTERN=s/ZVMODELVZ/$(CONFIG_FIRMWARE_PRODUCT_ID)/g
 COPYR_PATTERN=s/ZVCOPYRVZ/$(LABEL_COPYRIGHT_TEXT)/g
@@ -146,6 +146,9 @@ ifneq ($(CONFIG_FIRMWARE_INCLUDE_SCUTCLIENT),y)
 	rm -f $(INSTALLDIR)/www/scutclient_log.asp
 	rm -f $(INSTALLDIR)/www/scutclient_action.asp
 endif
+ifneq ($(CONFIG_FIRMWARE_INCLUDE_ADGUARDHOME),y)
+	rm -f $(INSTALLDIR)/www/Advanced_adguardhome.asp
+endif
 ifneq ($(CONFIG_FIRMWARE_INCLUDE_MENTOHUST),y)
 	rm -f $(INSTALLDIR)/www/mentohust.asp
 	rm -f $(INSTALLDIR)/www/mentohust_log.asp
@@ -159,47 +162,19 @@ ifneq ($(CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS),y)
 	rm -f $(INSTALLDIR)/www/Shadowsocks_action.asp
 	rm -f $(INSTALLDIR)/www/Shadowsocks_log.asp
 endif
-
-ifneq ($(CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_SERVER),y)
-	rm -f $(INSTALLDIR)/www/vpnsrv.asp
-endif
-ifneq ($(CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_CLIENT),y)
-	rm -f $(INSTALLDIR)/www/vpn_clients.asp
-	rm -f $(INSTALLDIR)/www/vpncli.asp
-endif
 ifneq ($(CONFIG_FIRMWARE_INCLUDE_ADBYBY),y)
 	rm -f $(INSTALLDIR)/www/Advanced_adbyby.asp
-	rm -f $(INSTALLDIR)/www/Ad_action.asp
 endif
 ifneq ($(CONFIG_FIRMWARE_INCLUDE_ALIDDNS),y)
 	rm -f $(INSTALLDIR)/www/Advanced_aliddns.asp
-endif
-ifneq ($(CONFIG_FIRMWARE_INCLUDE_ADGUARDHOME),y)
-	rm -f $(INSTALLDIR)/www/Advanced_adguardhome.asp
-endif
-ifneq ($(CONFIG_FIRMWARE_INCLUDE_KOOLPROXY),y)
-	rm -f $(INSTALLDIR)/www/Advanced_koolproxy.asp
-	rm -f $(INSTALLDIR)/www/Kp_action.asp
-endif
-ifneq ($(CONFIG_FIRMWARE_INCLUDE_CADDY),y)
-	rm -f $(INSTALLDIR)/www/Advanced_caddy.asp
-endif
-ifneq ($(CONFIG_FIRMWARE_INCLUDE_WYY),y)
-	rm -f $(INSTALLDIR)/www/Advanced_wyy.asp
 endif
 ifneq ($(CONFIG_FIRMWARE_INCLUDE_ZEROTIER),y)
 	rm -f $(INSTALLDIR)/www/Advanced_zerotier.asp
 endif
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_FRPC)_$(CONFIG_FIRMWARE_INCLUDE_FRPS), n_n)
 	rm -f $(INSTALLDIR)/www/Advanced_frp.asp
+	rm -f $(INSTALLDIR)/www/Advanced_frp_log.asp
 endif
-ifneq ($(CONFIG_FIRMWARE_INCLUDE_NVPPROXY),y)
-	rm -f $(INSTALLDIR)/www/Advanced_nvpproxy.asp
-endif
-#ifneq ($(CONFIG_FIRMWARE_INCLUDE_NPC),y)
-	rm -f $(INSTALLDIR)/www/Advanced_npc.asp
-	rm -f $(INSTALLDIR)/www/Advanced_npc_log.asp
-#endif
 ifneq ($(CONFIG_FIRMWARE_INCLUDE_DDNSTO),y)
 	rm -f $(INSTALLDIR)/www/Advanced_ddnsto.asp
 endif
@@ -209,6 +184,18 @@ endif
 ifneq ($(CONFIG_FIRMWARE_INCLUDE_ALDRIVER),y)
 	rm -f $(INSTALLDIR)/www/Advanced_aliyundrive.asp
 endif
-
+ifneq ($(CONFIG_FIRMWARE_INCLUDE_SQM),y)
+	rm -f $(INSTALLDIR)/www/Advanced_SQM.asp
+endif
+ifneq ($(CONFIG_FIRMWARE_INCLUDE_SMARTDNS),y)
+	rm -f $(INSTALLDIR)/www/Advanced_smartdns.asp
+endif
+ifneq ($(CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_SERVER),y)
+	rm -f $(INSTALLDIR)/www/vpnsrv.asp
+endif
+ifneq ($(CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_CLIENT),y)
+	rm -f $(INSTALLDIR)/www/vpn_clients.asp
+	rm -f $(INSTALLDIR)/www/vpncli.asp
+endif
 clean:
 	@echo "Clean www romfs"

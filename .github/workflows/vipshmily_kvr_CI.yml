@@ -1,27 +1,32 @@
-# Build from vb1980 kvr repo
+# Build from vipshmily kvr repo
 # BY: TurBoTse
 
-name: Build from vb1980 kvr repo
+name: Build from vipshmily kvr repo
 
-on: 
+on:
   workflow_dispatch:
     inputs:
-#  schedule:                                                    # 自动编译
-#    - cron: 0 19 * * *                                         # 每天国际时间19点，北京时间凌晨3点执行
-  watch:                                                        # 监视操作
-    types: [started]                                            # 点击 Star 之后
+      custom_modify:
+        type: boolean
+        description: 'whether to custom_modify'
+        default: true
+      release:
+        type: boolean
+        description: 'upload firmware to release'
+        default: true
+#  watch:                                                       # 监视操作
+#    types: [started]                                           # 点击 Star 之后
 env:
   build_dir: /opt/padavan                                       # 源码目录
   images_dir: /opt/images                                       # 固件目录
   work_dir: /opt/padavan/trunk                                  # 工作目录
   config_dir: /opt/padavan/trunk/configs/templates              # 设备模板目录
-  src_git: https://github.com/vb1980/Padavan-KVR.git            # 源码地址
+  src_git: https://github.com/vipshmily/Padavan-3.4-KVR.git     # 源码地址
 
 jobs:
   build:
-    name: build
-    runs-on: ubuntu-20.04
-    if: github.event.repository.owner.id == github.event.sender.id  # 自己点的 Star
+    runs-on: ubuntu-22.04
+#    if: github.event.repository.owner.id == github.event.sender.id  # 自己点的 Star
     env:
       build_variant: ${{ matrix.build_variant }}
       targets: ${{ matrix.targets }}
@@ -29,45 +34,43 @@ jobs:
       matrix:
         include:
           - build_variant: "mt7620"
-            targets: "PSG1208 PSG1218 NEWIFI-MINI MI-MINI MI-3 OYE-001 5K-W20"
+            targets: "PSG1218"
           - build_variant: "mt7621"
-            targets: "K2P-5.0 DIR-878-5.0 RM2100 R2100"
-          - build_variant: "mt7621-usb-1"
-            targets: "A3004NS MSG1500 WR1200JS E8820V2 NEWIFI3 RT-AC1200GU"
-          - build_variant: "mt7621-usb-2"
-            targets: "JCG-836PRO-5.0 JCG-AC860M-5.0 JCG-Y2-5.0 DIR-882-5.0 MI-R3G B70"
+            targets: "K2P"
+          - build_variant: "mt7621-usb"
+            targets: "K2P-USB"
           - build_variant: "mt7628"
-            targets: "360P2 HC5861B HC5761A HC5661A MI-NANO MZ-R13 MZ-R13P"
+            targets: "360P2"
     steps:
-      - name: Checkout main            # 导入主分支
-        uses: actions/checkout@v2
+      - uses: actions/checkout@main    # 导入主分支
+      - uses: hendrikmuhs/ccache-action@main
+        with:
+          key: ${{ matrix.targets }}
+      - uses: actions/setup-go@main
+        with:
+          go-version: '1.22.3'
+          check-latest: true
+          cache: false
       - name: Prepare environment      # 准备编译环境
         run: |                         # 安装依赖包
           sudo apt update
-          sudo apt install libtool-bin gperf python3-docutils autopoint gettext
+          sudo apt upgrade
+          sudo apt install libtool-bin gperf python3-docutils autopoint gettext ccache
           sudo timedatectl set-timezone 'Asia/Shanghai'  # 设置时区
       - name: Clone source code
         run: |                         # 克隆源码
           git clone --depth=1 $src_git $build_dir
-      - name: Run shellcheck
-        run: |
-          cd $work_dir
-          if [ -f ./tools/shellcheck.sh ]; then sh ./tools/shellcheck.sh; fi
-      - name: Prepare toolchain
-        run: |                         # 下载预编译的构建工具链
           mkdir -p $images_dir
-          cd $build_dir/toolchain-mipsel
-          sh dl_toolchain.sh
-      - name: Set golang
-        run: |
-          cp -f vb1980/scripts/go.sh $(pwd)
-          sudo chmod 777 ./go.sh
-          bash ./go.sh
+#      - name: Prepare toolchain
+#        run: |                         # 下载预编译的构建工具链
+#          cd $build_dir/toolchain-mipsel
+#          sh dl_toolchain.sh
       - name: Modify custom configs
+        if: ${{ github.event.inputs.custom_modify == 'true' }}
         run: |                         # 拷贝文件并修改
-          if [ -d vb1980/config ]; then cp -f vb1980/config/* $work_dir; fi
-          if [ -d vb1980/modify ]; then cp -rf vb1980/modify/* $work_dir; fi
-          if [ -d vb1980/scripts ]; then cp -f vb1980/scripts/* $work_dir; fi
+          if [ -d vipshmily_kvr/config ]; then cp -f vipshmily_kvr/config/* $work_dir; fi
+          if [ -d vipshmily_kvr/modify ]; then cp -rf vipshmily_kvr/modify/* $work_dir; fi
+          if [ -d vipshmily_kvr/scripts ]; then cp -f vipshmily_kvr/scripts/* $work_dir; fi
           cd $config_dir
           for m in $targets; do if [ -f $m.config ]; then \
           ##科学上网##
@@ -112,27 +115,21 @@ jobs:
           cd $work_dir
           for m in $targets; do if [ -f $m.config ]; then echo "拷贝 $m.config"; cp -f ./$m.config $config_dir/$m.config; fi; done; \
           for m in $targets; do if [ -f public.sh ]; then echo "执行 public.sh"; sh ./public.sh; fi; if [ -f $m.sh ]; then echo "执行 $m.sh"; sh ./$m.sh; fi; done; \
-      - name: Set busybox's version to compile
-        run: |
-          cd $work_dir/user/busybox
-          sed -i "s/SRC_NAME=busybox.*/SRC_NAME=busybox-1.24.x/g" ./Makefile
-          cd $work_dir
-          sed -i "s/busybox_id=\"1.34.1\"/busybox_id=\"1.24.x\"/g" ./build_firmware_modify
+          echo "TAG_ANME=$(date +%Y%m%d)" >> $GITHUB_ENV
       - name: Start build firmware
         run: |                         # 执行构建固件
-          cd $work_dir
-          for m in $targets; do fakeroot ./build_firmware_ci $m; \
-          if [ $? = 0 ]; then cp -f images/*.trx $images_dir/vb1980_${m}_$(date +%Y%m%d).trx; else exit 1; fi; \
-          ./clear_tree_simple >/dev/null 2>&1; done
-      - name: Upload images to Artifact
-        if: ${{ success() }}
-        uses: actions/upload-artifact@v2.2.1
+          cd $build_dir
+          for m in $targets; do fakeroot sudo make $m; \
+          if [ $? = 0 ]; then cp -f $work_dir/images/*.trx $images_dir/vipshmily_3.4_kvr_${m}_$TAG_ANME.trx; else exit 1; fi; done; \
+      - uses: actions/upload-artifact@main
         with:
-          name: vb1980_3.4_kvr_${{ env.build_variant }}
-          path: ${{ env.images_dir }}
-      - name: Upload images to WeTransfer
-        if: ${{ github.event.inputs.uploadwet == 'true' && success() }}
-        run: |                         # 上传到 WeTransfer
-          curl -fsSL git.io/file-transfer | sh
-          ./transfer wet -s -p 16 --no-progress ${images_dir} 2>&1 | tee wetransfer.log
-          echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
+          name: vipshmily_3.4_kvr_${{ matrix.targets }}
+          path: ${{ env.images_dir }}/*.trx
+      - uses: ncipollo/release-action@main
+        if: ${{ github.event.inputs.release == 'true' }}
+        with:
+          commit: ${{ github.sha }}
+          tag: ${{ env.TAG_ANME }}
+          artifacts: ${{ env.images_dir }}/*.trx
+          allowUpdates: true
+          omitBodyDuringUpdate: true
